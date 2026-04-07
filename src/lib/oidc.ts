@@ -19,14 +19,23 @@ interface ExchangeResult {
   user: TokenResponse['user'];
 }
 
+function basicAuth(clientId: string, clientSecret: string): string {
+  return 'Basic ' + btoa(`${clientId}:${clientSecret}`);
+}
+
 export async function exchangeCode(opts: {
   issuer: string;
+  clientId: string;
+  clientSecret: string;
   code: string;
   redirectTo: string;
 }): Promise<ExchangeResult> {
   const res = await fetch(`${opts.issuer}/auth/exchange`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: basicAuth(opts.clientId, opts.clientSecret),
+    },
     body: JSON.stringify({
       code: opts.code,
       redirect_to: opts.redirectTo,
@@ -51,11 +60,16 @@ export async function exchangeCode(opts: {
 
 export async function refreshTokens(opts: {
   issuer: string;
+  clientId: string;
+  clientSecret: string;
   refreshToken: string;
 }): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
   const res = await fetch(`${opts.issuer}/auth/refresh`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: basicAuth(opts.clientId, opts.clientSecret),
+    },
     body: JSON.stringify({ refresh_token: opts.refreshToken }),
   });
 
@@ -76,11 +90,16 @@ export async function refreshTokens(opts: {
 
 export async function revokeToken(opts: {
   issuer: string;
+  clientId: string;
+  clientSecret: string;
   refreshToken: string;
 }): Promise<void> {
   await fetch(`${opts.issuer}/auth/logout`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: basicAuth(opts.clientId, opts.clientSecret),
+    },
     body: JSON.stringify({ refresh_token: opts.refreshToken }),
   });
 }

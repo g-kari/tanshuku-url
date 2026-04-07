@@ -20,6 +20,8 @@ export const requireAuth = createMiddleware<{
     try {
       const newTokens = await refreshTokens({
         issuer: c.env.OIDC_ISSUER,
+        clientId: c.env.OIDC_CLIENT_ID,
+        clientSecret: c.env.OIDC_CLIENT_SECRET,
         refreshToken: data.refreshToken,
       });
       data.accessToken = newTokens.accessToken;

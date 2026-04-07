@@ -70,6 +70,8 @@ authRoute.get('/callback', async (c) => {
   try {
     result = await exchangeCode({
       issuer: c.env.OIDC_ISSUER,
+      clientId: c.env.OIDC_CLIENT_ID,
+      clientSecret: c.env.OIDC_CLIENT_SECRET,
       code,
       redirectTo: callbackUrl,
     });
@@ -120,6 +122,8 @@ authRoute.post('/logout', async (c) => {
     // 0g0 IDのトークン失効
     await revokeToken({
       issuer: c.env.OIDC_ISSUER,
+      clientId: c.env.OIDC_CLIENT_ID,
+      clientSecret: c.env.OIDC_CLIENT_SECRET,
       refreshToken: session.data.refreshToken,
     });
     await deleteSession(c.env.SESSIONS, session.sessionId);
