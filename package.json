@@ -6,7 +6,7 @@
     "dev": "wrangler dev",
     "dev:frontend": "cd frontend && vite",
     "dev:all": "concurrently \"wrangler dev\" \"cd frontend && vite\"",
-    "build": "cd frontend && vite build",
+    "build": "cd frontend && npx vite build",
     "deploy": "npm run build && wrangler deploy",
     "db:migrate": "wrangler d1 execute tanshuku-db --file=schema.sql",
     "db:migrate:local": "wrangler d1 execute tanshuku-db --local --file=schema.sql"

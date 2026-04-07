@@ -9,21 +9,21 @@ binding = "ASSETS"
 
 [[kv_namespaces]]
 binding = "URL_CACHE"
-id = "REPLACE_WITH_KV_ID"
-preview_id = "REPLACE_WITH_KV_PREVIEW_ID"
+id = "203784620acc4309979ffab0caa69a04"
+preview_id = "640fc4572c2b4859a248fcfa3ff542ef"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "REPLACE_WITH_SESSIONS_KV_ID"
-preview_id = "REPLACE_WITH_SESSIONS_KV_PREVIEW_ID"
+id = "2c3f947c282248a9b53aa4b7279ed16a"
+preview_id = "24e439fffcdf474682c8aeff57defe24"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "tanshuku-db"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "299dd393-cb6e-4efd-ab72-00a1d34e58c6"
 
 [vars]
-SHORT_DOMAIN = "https://your-domain.workers.dev"
+SHORT_DOMAIN = "https://tanshuku-url.0g0.workers.dev"
 OIDC_ISSUER = "https://id.0g0.xyz"
 
 # Secretsはwrangler secret putで設定:
