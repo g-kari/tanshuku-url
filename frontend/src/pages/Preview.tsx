@@ -16,7 +16,7 @@ export default function Preview() {
   const { data, isLoading, error } = useQuery<PreviewData>({
     queryKey: ['preview', code],
     queryFn: async () => {
-      const res = await fetch(`/api/analytics/preview/${code}`);
+      const res = await fetch(`/api/preview/${code}`);
       if (!res.ok) throw new Error('見つかりません');
       return res.json();
     },

@@ -1,10 +1,35 @@
 export type Bindings = {
   DB: D1Database;
   URL_CACHE: KVNamespace;
+  SESSIONS: KVNamespace;
   ASSETS: Fetcher;
   SHORT_DOMAIN: string;
   GOOGLE_SAFE_BROWSING_API_KEY: string;
+  OIDC_CLIENT_ID: string;
+  OIDC_CLIENT_SECRET: string;
+  OIDC_ISSUER: string;
 };
+
+export type Variables = {
+  user: User;
+  sessionId: string;
+};
+
+export interface User {
+  id: string;
+  email: string | null;
+  name: string | null;
+  picture: string | null;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface SessionData {
+  userId: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+}
 
 export interface UrlRecord {
   code: string;

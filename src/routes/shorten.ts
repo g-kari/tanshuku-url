@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import type { Bindings, ShortenRequest, CachedUrl } from '../lib/types';
+import type { Bindings, Variables, ShortenRequest, CachedUrl } from '../lib/types';
 import { generateUniqueCode } from '../lib/code';
 import { checkUrlSafety } from '../lib/safebrowsing';
 
-export const shortenRoute = new Hono<{ Bindings: Bindings }>();
+export const shortenRoute = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 shortenRoute.post('/', async (c) => {
   const body = await c.req.json<ShortenRequest>();
@@ -48,10 +48,11 @@ shortenRoute.post('/', async (c) => {
   const expiresAt = body.expiresIn ? now + body.expiresIn : null;
 
   // D1 INSERT
+  const user = c.get('user');
   await c.env.DB
     .prepare(
-      `INSERT INTO urls (code, original_url, safe, custom_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO urls (code, original_url, safe, custom_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content, created_at, expires_at, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       code,
@@ -64,7 +65,8 @@ shortenRoute.post('/', async (c) => {
       body.utm?.term ?? null,
       body.utm?.content ?? null,
       now,
-      expiresAt
+      expiresAt,
+      user.id
     )
     .run();
 

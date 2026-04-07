@@ -35,7 +35,7 @@ export default function Dashboard() {
   const { data: summary } = useQuery<Summary>({
     queryKey: ['summary'],
     queryFn: async () => {
-      const res = await fetch('/api/analytics/summary');
+      const res = await fetch('/api/analytics/summary', { credentials: 'include' });
       return res.json();
     },
   });
@@ -43,7 +43,7 @@ export default function Dashboard() {
   const { data: urls } = useQuery<UrlsResponse>({
     queryKey: ['urls', page],
     queryFn: async () => {
-      const res = await fetch(`/api/analytics/urls?page=${page}&limit=10`);
+      const res = await fetch(`/api/analytics/urls?page=${page}&limit=10`, { credentials: 'include' });
       return res.json();
     },
   });
@@ -51,7 +51,7 @@ export default function Dashboard() {
   const { data: clickData } = useQuery<ClickData>({
     queryKey: ['clicks', selectedCode],
     queryFn: async () => {
-      const res = await fetch(`/api/analytics/clicks/${selectedCode}`);
+      const res = await fetch(`/api/analytics/clicks/${selectedCode}`, { credentials: 'include' });
       return res.json();
     },
     enabled: !!selectedCode,
