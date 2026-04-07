@@ -28,6 +28,7 @@ export async function exchangeCode(opts: {
   clientId: string;
   clientSecret: string;
   code: string;
+  codeVerifier: string;
   redirectTo: string;
 }): Promise<ExchangeResult> {
   const res = await fetch(`${opts.issuer}/auth/exchange`, {
@@ -38,6 +39,7 @@ export async function exchangeCode(opts: {
     },
     body: JSON.stringify({
       code: opts.code,
+      code_verifier: opts.codeVerifier,
       redirect_to: opts.redirectTo,
     }),
   });

@@ -73,6 +73,7 @@ authRoute.get('/callback', async (c) => {
       clientId: c.env.OIDC_CLIENT_ID,
       clientSecret: c.env.OIDC_CLIENT_SECRET,
       code,
+      codeVerifier,
       redirectTo: callbackUrl,
     });
   } catch (e) {
