@@ -1,0 +1,56 @@
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import Home from './pages/Home';
+import Preview from './pages/Preview';
+import Dashboard from './pages/Dashboard';
+
+function Nav() {
+  const location = useLocation();
+  const isActive = (path: string) =>
+    location.pathname === path
+      ? 'bg-warm-black text-warm-white'
+      : 'hover:bg-warm-black hover:text-warm-white';
+
+  return (
+    <nav className="sticky top-0 z-50 border-b border-warm-black-25 bg-warm-white/80 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
+        <Link
+          to="/"
+          className="text-lg font-bold tracking-widest text-warm-black"
+        >
+          tanshuku
+        </Link>
+        <div className="flex gap-2">
+          <Link
+            to="/"
+            className={`rounded-xl px-4 py-1.5 text-sm tracking-wide border border-warm-black transition-all duration-400 ${isActive('/')}`}
+            style={{ transitionTimingFunction: 'var(--ease-magnetic)' }}
+          >
+            Shorten
+          </Link>
+          <Link
+            to="/dashboard"
+            className={`rounded-xl px-4 py-1.5 text-sm tracking-wide border border-warm-black transition-all duration-400 ${isActive('/dashboard')}`}
+            style={{ transitionTimingFunction: 'var(--ease-magnetic)' }}
+          >
+            Dashboard
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Nav />
+      <main className="mx-auto max-w-3xl px-5 py-16">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/preview/:code" element={<Preview />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </main>
+    </BrowserRouter>
+  );
+}

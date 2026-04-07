@@ -1,0 +1,23 @@
+{
+  "name": "tanshuku-url",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:frontend": "cd frontend && vite",
+    "dev:all": "concurrently \"wrangler dev\" \"cd frontend && vite\"",
+    "build": "cd frontend && vite build",
+    "deploy": "npm run build && wrangler deploy",
+    "db:migrate": "wrangler d1 execute tanshuku-db --file=schema.sql",
+    "db:migrate:local": "wrangler d1 execute tanshuku-db --local --file=schema.sql"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241004.0",
+    "concurrently": "^9.0.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.80.0"
+  }
+}

@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-warm-black: #483030;
+  --color-warm-black-10: #f2f0f0;
+  --color-warm-black-25: #dfd7d7;
+  --color-warm-black-50: #a39696;
+  --color-warm-white: #fefbfb;
+  --color-warm-green: #73862d;
+  --color-vivid-red: #ff340b;
+  --font-sans: 'Reddit Sans', 'IBM Plex Sans JP', BlinkMacSystemFont, sans-serif;
+  --ease-magnetic: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-warm-white);
+  color: var(--color-warm-black);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: radial-gradient(var(--color-warm-black-10) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.interactive-scale {
+  transition: transform 400ms var(--ease-magnetic);
+}
+.interactive-scale:hover {
+  transform: scale(1.05);
+}
+.interactive-scale:active {
+  transform: scale(0.95);
+}
