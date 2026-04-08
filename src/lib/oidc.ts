@@ -19,18 +19,27 @@ interface ExchangeResult {
   user: TokenResponse['user'];
 }
 
+export interface OIDCClient {
+  issuer: string;
+  clientId: string;
+  clientSecret: string;
+}
+
 function basicAuth(clientId: string, clientSecret: string): string {
   return 'Basic ' + btoa(`${clientId}:${clientSecret}`);
 }
 
-export async function exchangeCode(opts: {
-  issuer: string;
-  clientId: string;
-  clientSecret: string;
-  code: string;
-  codeVerifier: string;
-  redirectTo: string;
-}): Promise<ExchangeResult> {
+function validateIssuer(issuer: string): void {
+  if (!issuer.startsWith('https://')) {
+    throw new Error(`OIDC issuer must use HTTPS: ${issuer}`);
+  }
+}
+
+export async function exchangeCode(
+  opts: OIDCClient & { code: string; codeVerifier: string; redirectTo: string }
+): Promise<ExchangeResult> {
+  validateIssuer(opts.issuer);
+
   const res = await fetch(`${opts.issuer}/auth/exchange`, {
     method: 'POST',
     headers: {
@@ -46,12 +55,21 @@ export async function exchangeCode(opts: {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Token exchange failed: ${res.status} ${text}`);
+    console.error(`[OIDC] Token exchange failed: ${res.status}`, text);
+    throw new Error(`Token exchange failed (${res.status})`);
   }
 
-  const json = (await res.json()) as { data: TokenResponse };
-  const data = json.data;
+  let json: { data: TokenResponse };
+  try {
+    json = (await res.json()) as { data: TokenResponse };
+  } catch {
+    throw new Error('Token exchange response parse failed');
+  }
+  if (!json?.data) {
+    throw new Error('Token exchange response missing data');
+  }
 
+  const data = json.data;
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
@@ -60,12 +78,11 @@ export async function exchangeCode(opts: {
   };
 }
 
-export async function refreshTokens(opts: {
-  issuer: string;
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
-}): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+export async function refreshTokens(
+  opts: OIDCClient & { refreshToken: string }
+): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+  validateIssuer(opts.issuer);
+
   const res = await fetch(`${opts.issuer}/auth/refresh`, {
     method: 'POST',
     headers: {
@@ -76,12 +93,20 @@ export async function refreshTokens(opts: {
   });
 
   if (!res.ok) {
-    throw new Error(`Token refresh failed: ${res.status}`);
+    const text = await res.text();
+    console.error(`[OIDC] Token refresh failed: ${res.status}`, text);
+    throw new Error(`Token refresh failed (${res.status})`);
   }
 
-  const json = (await res.json()) as {
-    data: { access_token: string; refresh_token: string; expires_in: number };
-  };
+  let json: { data: { access_token: string; refresh_token: string; expires_in: number } };
+  try {
+    json = (await res.json()) as typeof json;
+  } catch {
+    throw new Error('Token refresh response parse failed');
+  }
+  if (!json?.data) {
+    throw new Error('Token refresh response missing data');
+  }
 
   return {
     accessToken: json.data.access_token,
@@ -90,13 +115,10 @@ export async function refreshTokens(opts: {
   };
 }
 
-export async function revokeToken(opts: {
-  issuer: string;
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
-}): Promise<void> {
-  await fetch(`${opts.issuer}/auth/logout`, {
+export async function revokeToken(opts: OIDCClient & { refreshToken: string }): Promise<void> {
+  validateIssuer(opts.issuer);
+
+  const res = await fetch(`${opts.issuer}/auth/logout`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -104,4 +126,10 @@ export async function revokeToken(opts: {
     },
     body: JSON.stringify({ refresh_token: opts.refreshToken }),
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`[OIDC] Token revocation failed: ${res.status}`, text);
+    throw new Error(`Token revocation failed (${res.status})`);
+  }
 }

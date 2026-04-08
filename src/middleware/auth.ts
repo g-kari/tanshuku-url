@@ -3,6 +3,24 @@ import type { Bindings, Variables, User } from '../lib/types';
 import { getSession, updateSession, deleteSession, clearSessionCookie } from '../lib/session';
 import { refreshTokens } from '../lib/oidc';
 
+const USER_CACHE_TTL = 60; // seconds
+
+async function getCachedUser(sessions: KVNamespace, userId: string): Promise<User | null> {
+  const cached = await sessions.get(`user:${userId}`);
+  if (!cached) return null;
+  try {
+    return JSON.parse(cached) as User;
+  } catch {
+    return null;
+  }
+}
+
+async function setCachedUser(sessions: KVNamespace, user: User): Promise<void> {
+  await sessions.put(`user:${user.id}`, JSON.stringify(user), {
+    expirationTtl: USER_CACHE_TTL,
+  });
+}
+
 export const requireAuth = createMiddleware<{
   Bindings: Bindings;
   Variables: Variables;
@@ -35,15 +53,27 @@ export const requireAuth = createMiddleware<{
     }
   }
 
-  const user = await c.env.DB
-    .prepare('SELECT * FROM users WHERE id = ?')
-    .bind(data.userId)
-    .first<User>();
+  // KVキャッシュを先に確認してD1クエリを削減
+  let user = await getCachedUser(c.env.SESSIONS, data.userId);
 
   if (!user) {
-    await deleteSession(c.env.SESSIONS, sessionId);
-    c.header('Set-Cookie', clearSessionCookie());
-    return c.json({ error: 'ユーザーが見つかりません' }, 401);
+    try {
+      user = await c.env.DB
+        .prepare('SELECT id, email, name, picture, created_at, updated_at FROM users WHERE id = ?')
+        .bind(data.userId)
+        .first<User>();
+    } catch (e) {
+      console.error('[Auth] D1 query failed', e);
+      return c.json({ error: 'データベースエラー' }, 500);
+    }
+
+    if (!user) {
+      await deleteSession(c.env.SESSIONS, sessionId);
+      c.header('Set-Cookie', clearSessionCookie());
+      return c.json({ error: 'ユーザーが見つかりません' }, 401);
+    }
+
+    c.executionCtx.waitUntil(setCachedUser(c.env.SESSIONS, user));
   }
 
   c.set('user', user);

@@ -59,10 +59,13 @@ authRoute.get('/callback', async (c) => {
   }
   await c.env.SESSIONS.delete(`pkce:${state}`);
 
-  const { codeVerifier, redirectTo } = JSON.parse(pkceRaw) as {
-    codeVerifier: string;
-    redirectTo: string;
-  };
+  let pkce: { codeVerifier: string; redirectTo: string };
+  try {
+    pkce = JSON.parse(pkceRaw) as { codeVerifier: string; redirectTo: string };
+  } catch {
+    return c.json({ error: 'セッションデータが破損しています' }, 400);
+  }
+  const { codeVerifier, redirectTo } = pkce;
 
   // トークン交換
   const callbackUrl = `${c.env.SHORT_DOMAIN}/api/auth/callback`;
@@ -82,25 +85,30 @@ authRoute.get('/callback', async (c) => {
 
   // ユーザーUPSERT
   const now = Math.floor(Date.now() / 1000);
-  await c.env.DB
-    .prepare(
-      `INSERT INTO users (id, email, name, picture, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET
-         email = excluded.email,
-         name = excluded.name,
-         picture = excluded.picture,
-         updated_at = excluded.updated_at`
-    )
-    .bind(
-      result.user.id,
-      result.user.email,
-      result.user.name,
-      result.user.picture,
-      now,
-      now
-    )
-    .run();
+  try {
+    await c.env.DB
+      .prepare(
+        `INSERT INTO users (id, email, name, picture, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           email = excluded.email,
+           name = excluded.name,
+           picture = excluded.picture,
+           updated_at = excluded.updated_at`
+      )
+      .bind(
+        result.user.id,
+        result.user.email,
+        result.user.name,
+        result.user.picture,
+        now,
+        now
+      )
+      .run();
+  } catch (e) {
+    console.error('[Auth] User upsert failed', e);
+    return c.json({ error: 'ユーザー情報の保存に失敗しました' }, 500);
+  }
 
   // セッション作成
   const sessionId = await createSession(c.env.SESSIONS, {
@@ -120,13 +128,17 @@ authRoute.post('/logout', async (c) => {
   const session = await getSession(c.env.SESSIONS, c.req.raw);
 
   if (session) {
-    // 0g0 IDのトークン失効
-    await revokeToken({
-      issuer: c.env.OIDC_ISSUER,
-      clientId: c.env.OIDC_CLIENT_ID,
-      clientSecret: c.env.OIDC_CLIENT_SECRET,
-      refreshToken: session.data.refreshToken,
-    });
+    // 0g0 IDのトークン失効 (失敗してもログアウト処理は継続)
+    try {
+      await revokeToken({
+        issuer: c.env.OIDC_ISSUER,
+        clientId: c.env.OIDC_CLIENT_ID,
+        clientSecret: c.env.OIDC_CLIENT_SECRET,
+        refreshToken: session.data.refreshToken,
+      });
+    } catch (e) {
+      console.error('[Auth] Token revocation failed', e);
+    }
     await deleteSession(c.env.SESSIONS, session.sessionId);
   }
 
