@@ -23,8 +23,8 @@ database_name = "tanshuku-db"
 database_id = "299dd393-cb6e-4efd-ab72-00a1d34e58c6"
 
 [[routes]]
-pattern = "t.0g0.xyz/*"
-zone_name = "0g0.xyz"
+pattern = "t.0g0.xyz"
+custom_domain = true
 
 [vars]
 SHORT_DOMAIN = "https://t.0g0.xyz"
