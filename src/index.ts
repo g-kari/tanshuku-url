@@ -49,6 +49,10 @@ app.use('/api/analytics/*', requireAuth);
 app.route('/api/shorten', shortenRoute);
 app.route('/api/analytics', analyticsRoute);
 
+// SPAルート (/:code より先に定義しないとリダイレクト扱いになる)
+app.get('/dashboard', (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get('/preview/:code', (c) => c.env.ASSETS.fetch(c.req.raw));
+
 // 公開ルート
 app.route('/', redirectRoute);
 
