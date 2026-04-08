@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import { useAuth } from './contexts/AuthContext';
 import AuthGuard from './components/AuthGuard';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import Preview from './pages/Preview';
 import Dashboard from './pages/Dashboard';
 
@@ -73,6 +74,12 @@ function Nav() {
   );
 }
 
+function RootRoute() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  return user ? <Home /> : <Landing />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -81,11 +88,7 @@ export default function App() {
         <Routes>
           <Route
             path="/"
-            element={
-              <AuthGuard>
-                <Home />
-              </AuthGuard>
-            }
+            element={<RootRoute />}
           />
           <Route path="/preview/:code" element={<Preview />} />
           <Route
