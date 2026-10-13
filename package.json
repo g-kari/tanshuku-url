@@ -6,13 +6,13 @@
     "dev": "wrangler dev",
     "dev:frontend": "cd frontend && vite",
     "dev:all": "concurrently \"wrangler dev\" \"cd frontend && vite\"",
-    "build": "cd frontend && npx vite build",
+    "build": "npm ci --prefix frontend && npm run build --prefix frontend",
     "deploy": "npm run build && wrangler deploy",
     "db:migrate": "wrangler d1 execute tanshuku-db --file=schema.sql",
     "db:migrate:local": "wrangler d1 execute tanshuku-db --local --file=schema.sql"
   },
   "dependencies": {
-    "hono": "^4.6.0"
+    "hono": "^4.12.34"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241004.0",
